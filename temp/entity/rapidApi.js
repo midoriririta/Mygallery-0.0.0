@@ -14,7 +14,7 @@ var rapidApiUrls = {
 }
 
 var rapidApi = {
-    uploadContent: function (filePath) {
+    uploadContentAsync: function (filePath) {
         var promise = new Promise((resolve, reject) => {
             try {
                 var cache = rapidEntity.find(filePath)
@@ -40,7 +40,30 @@ var rapidApi = {
         })
         return promise
     },
-    tagging: function (contentId) {
+    uploadContent: function (filePath, resolve, reject) {
+        try {
+            var cache = rapidEntity.find(filePath)
+            if (cache) {
+                resolve && resolve(cache)
+            } else {
+                unirest.post(rapidApiUrls.content())
+                    .header('X-RapidAPI-Key', rapidApiKey)
+                    .attach('file', fs.createReadStream(filePath))
+                    .end(function (res) {
+                        if (res.error) {
+                            reject && reject(res.error)
+                        } else {
+                            var contentId = res.body.uploaded[0].id
+                            rapidEntity.create(filePath, contentId)
+                            resolve && resolve(contentId)
+                        }
+                    })
+            }
+        } catch (e) {
+            reject && reject(e)
+        }
+    },
+    taggingAsync: function (contentId) {
         var promise = new Promise((resolve, reject) => {
             try {
                 unirest.get(rapidApiUrls.tagging(contentId))
@@ -68,6 +91,32 @@ var rapidApi = {
             }
         })
         return promise
+    },
+    tagging: function (contentId, resolve, reject) {
+        try {
+            unirest.get(rapidApiUrls.tagging(contentId))
+                .header('X-RapidAPI-Key', rapidApiKey)
+                .end(function (res) {
+                    if (res.error) {
+                        reject && reject(res.error)
+                    } else {
+                        var tags = []
+                        if (res.body.results.length > 0) {
+                            var _tags = res.body.results[0].tags
+                            if (_tags) {
+                                _tags.forEach((tag) => {
+                                    if (tag.confidence >= 30 && tags.length < 5) {
+                                        tags.push(tag.tag)
+                                    }
+                                })
+                            }
+                        }
+                        resolve && resolve(tags)
+                    }
+                })
+        } catch (e) {
+            reject && reject(e)
+        }
     }
 }
 

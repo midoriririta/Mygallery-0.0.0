@@ -149,16 +149,16 @@ test('photoEntity.rename test', () => {
     expect(photo.name).toBe(newName);
 });
 
-test('photoEntity.tag test', async () => {
+test('photoEntity.tag test', () => {
     var gallery1Id = util.toBase64(testGalleryName1);
     var photoId = photoEntity.getGalleryPhotos(gallery1Id)[0].id;
 
     //in test, file not exists, so return tags must be [], length is 0
-    var tags = await photoEntity.tag(gallery1Id, photoId);
+    var tags = photoEntity.tag(gallery1Id, photoId);
     expect(tags.length).toBe(0);
 });
 
-test('userEntity.login test', async () => {
+test('userEntity.login test', () => {
     var user = userEntity.login("admin", "12345678");
     expect(user).not.toBeUndefined();
 

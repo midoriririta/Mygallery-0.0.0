@@ -70,8 +70,12 @@ router.post('/rename', function (req, res) {
 })
 
 // GET /api/photo/tag?galleryId=<galleryId>&photoId=<id>
-router.get('/tag', async function (req, res) {
-    res.json(jsonResult.success('OK', await photoEntity.tag(req.query.galleryId, req.query.photoId)))
+router.get('/tag', function (req, res) {
+    photoEntity.tag(req.query.galleryId, req.query.photoId).then((tags) => {
+        res.json(jsonResult.success('OK', tags));
+    }).catch((e) => {
+        res.json(jsonResult.logicFailed(e));
+    })
 })
 
 module.exports = router

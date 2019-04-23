@@ -64,7 +64,7 @@ var photoEntity = {
         util.writePhotosData(galleryId, photos)
         return item
     },
-    tag: async function (galleryId, photoId) {
+    tag: function (galleryId, photoId) {
         try {
             var photo = _.find(util.readPhotosData(galleryId), { id: photoId })
             if (!photo) {
@@ -72,9 +72,11 @@ var photoEntity = {
             }
             var file = util.resloveUrl(path.join(path.resolve('.'), photo.file))
             if (fs.existsSync(file)) {
-                var contentId = await rapidApi.uploadContent(file)
-                var tags = await rapidApi.tagging(contentId)
-                return tags
+                rapidApi.uploadContent(file, (contentId)=>{
+                    rapidApi.tagging(contentId, (tags)=>{
+                        return tags;
+                    });
+                });
             }
             return []
         } catch (e) {
